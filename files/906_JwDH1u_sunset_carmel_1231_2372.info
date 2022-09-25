@@ -1,0 +1,13 @@
+{
+	"title": "eee",
+	"post_meta_fields": {
+		"meta 1": "hey",
+		"meta 2": "it worked",
+		"css": "yes"
+	},
+	"post_tags": [
+		"tag1",
+		"tag2",
+		"tag3"
+	]
+}
