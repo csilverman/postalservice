@@ -14,6 +14,9 @@
 - Add styling
 - Add the "uploading" screen, and then have it replaced when everything's been uploaded
 - clean up code
+- fix the thing where it throws a 500 if it has to process too many images
+- the image file types it's looking for should be a config variable
+
 - write brief explanatory docs
 - share iOS shortcut
 - Set up smallhacks page for this on csi.dev
@@ -229,7 +232,7 @@ function scan_folder( $folder ) {
   global $settings;
 
   // get all image files
-  $files = glob("$folder/*.{jpg,gif,png,bmp}", GLOB_BRACE);
+  $files = glob("$folder/*.{jpg,jpeg,gif,png,bmp}", GLOB_BRACE);
 
   foreach ( $files as &$file ) {
 
