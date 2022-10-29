@@ -90,8 +90,8 @@ TODO
 // files are associative arrays
 
 $wp_root = $_SERVER['DOCUMENT_ROOT'];
-$public_directory_url = 'http://notes.local/wp-content/plugins/insert-posts/files/';
-$files_dir = $wp_root.'/wp-content/plugins/insert-posts/files';
+$public_directory_url = 'http://notes.local/wp-content/plugins/postalservice/files/';
+$files_dir = $wp_root.'/wp-content/plugins/postalservice/files';
 $posted_files_dir = $files_dir.'/_posted_items';
 $info_file_type = 'json';
 
