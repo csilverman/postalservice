@@ -1,7 +1,29 @@
+
+
+<h1>Uploading posts</h1>
+
+
+
+<p>Documentation [link to GitHub]</p>
+
 <?php
 
 /*
-_____          _        _    _____                 _
+@todo
+- Add HTML5 Boilerplate template
+- Add styling
+- Add the "uploading" screen, and then have it replaced when everything's been uploaded
+- clean up code
+- fix the thing where it throws a 500 if it has to process too many images
+- the image file types it's looking for should be a config variable
+
+- write brief explanatory docs
+- share iOS shortcut
+- Set up smallhacks page for this on csi.dev
+*/
+
+/*
+ _____          _        _    _____                 _
 |  __ \        | |      | |  / ____|               (_)
 | |__) |__  ___| |_ __ _| | | (___   ___ _ ____   ___  ___ ___
 |  ___/ _ \/ __| __/ _` | |  \___ \ / _ \ '__\ \ / / |/ __/ _ \
@@ -32,7 +54,7 @@ TODO
 
 
 // This script converts JSON to associative arrays, but assumes that
-// the .info files are in JSON format. This is a personal decision; I'm
+// the .json files are in JSON format. This is a personal decision; I'm
 // building this script to post to WP from iOS Shortcuts, and it's easier
 // to generate data in JSON format in Shortcuts via dictionaries.
 
@@ -86,12 +108,17 @@ TODO
 
 // This is the path to your root WP installation
 
-// 'info_file_type' - change to 'array' if the .info
+// 'info_file_type' - change to 'array' if the .json
 // files are associative arrays
 
 $wp_root = $_SERVER['DOCUMENT_ROOT'];
+<<<<<<< HEAD:5552e87f.php
 $public_directory_url = 'http://notes.local/wp-content/plugins/postalservice/files/';
 $files_dir = $wp_root.'/wp-content/plugins/postalservice/files';
+=======
+$public_directory_url = 'https://csilverman.photos/wp-content/postalservice/files/';
+$files_dir = $wp_root.'/wp-content/postalservice/files';
+>>>>>>> 9bb2c73cfabd065bf25ae47f4561776fc262bc34:index.php
 $posted_files_dir = $files_dir.'/_posted_items';
 $info_file_type = 'json';
 
@@ -141,20 +168,21 @@ function insert_image_post( $image_url, $post_data ) {
   // meta fields in their own array
 
 
-
   // Create post
   $post_id = wp_insert_post(array(
       'post_title'    => $post_data['title'] ?? 'title',
       'post_content'  => $post_data['content'] ?? '',
-      'post_date'     => $post_data['post_date'] ?? $post_date,
+      'post_date'     => $post_data['post_date'], // ?? $post_date,
       'post_author'   => $post_data['user_id'] ?? 1,
       'post_type'     => $post_data['post_type'] ?? 'post',
       'post_status'   => $post_data['post_status'] ?? 'publish',
       'post_category' => $post_data['post_cats'] ?? null,
-      'tags_input'    => $post_data['post_tags'] ?? null
+      'tags_input'    => $post_data['post_tags'] // ?? null
   ));
 
   if ( $post_id ) {
+    
+    
 
     // Set category - create if it doesn't exist yet
     wp_set_post_terms($post_id, wp_create_category('My Category'), 'category');
@@ -166,9 +194,9 @@ function insert_image_post( $image_url, $post_data ) {
     foreach ( $post_data['post_meta_fields'] as $key => $value ) {
       add_post_meta($post_id, $key, $value);
     }
-    echo 'success<br>';
+    echo '<div class="status-item status-success"><a href="' . get_permalink( $post_id ) . '">'.$post_data['title'].'<span class="status-symbol symbol--success">success</span></a></div>';
   } else {
-    echo 'error<br>';
+    echo '<div class="status-item status-failure">'.$post_data['title'].'<span class="status-symbol symbol--failure">failed</span></div>';
   }
 
   // magic sideload image returns an HTML image, not an ID
@@ -209,7 +237,7 @@ function scan_folder( $folder ) {
   global $settings;
 
   // get all image files
-  $files = glob("$folder/*.{jpg,gif,png,bmp}", GLOB_BRACE);
+  $files = glob("$folder/*.{jpg,jpeg,gif,png,bmp}", GLOB_BRACE);
 
   foreach ( $files as &$file ) {
 
@@ -229,14 +257,15 @@ function scan_folder( $folder ) {
     $file_posted_path = $settings['posted_files_dir'].'/'.$image_basename;
 
     // this is the corresponding info file
-    $info_file_path = $folder.'/'.$basic_filename.'.info';
+    $info_file_path = $folder.'/'.$basic_filename.'.json';
+    
 
     // after the file is posted, its info file
     // will be moved to the following path
-    $info_file_posted_path = $settings['posted_files_dir'].'/'.$basic_filename.'.info';
+    $info_file_posted_path = $settings['posted_files_dir'].'/'.$basic_filename.'.json';
 
 
-
+echo 'info file path ' . $info_file_path;
 
     // load the info file
     $info_file_data = file_get_contents( $info_file_path );
@@ -249,7 +278,7 @@ function scan_folder( $folder ) {
 
     // the public image path
     $image_url = $settings['public_directory_url'] . $path_parts['basename'];
-    echo $image_url;
+//     echo $image_url;
 
     insert_image_post( $image_url, $info_file_data );
 
