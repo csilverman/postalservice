@@ -1,5 +1,3 @@
-
-
 <h1>Uploading posts</h1>
 
 
@@ -8,19 +6,6 @@
 
 <?php
 
-/*
-@todo
-- Add HTML5 Boilerplate template
-- Add styling
-- Add the "uploading" screen, and then have it replaced when everything's been uploaded
-- clean up code
-- fix the thing where it throws a 500 if it has to process too many images
-- the image file types it's looking for should be a config variable
-
-- write brief explanatory docs
-- share iOS shortcut
-- Set up smallhacks page for this on csi.dev
-*/
 
 /*
  _____          _        _    _____                 _
@@ -32,8 +17,18 @@
 
 = = = = = = = = = = = = = = = = = = = = = = = =
 
-v 1.0
+v 0.9
 Chris Silverman
+
+= = = = = = = = = = = = = = = = = = = = = = = =
+
+
+## OVERVIEW
+
+
+
+
+
 
 
 TODO
@@ -42,11 +37,28 @@ TODO
 
 */
 
-// Slightly modified version of tlongren's jolly script here:
-// https://gist.github.com/tlongren/ebecf53d18ef712006d2aa53fce8f2a4
 
-// and GhostToast's reply here (which is from 2013, but still works for my purposes)
-// https://wordpress.stackexchange.com/questions/100838/how-to-set-featured-image-to-custom-post-from-outside-programmatically
+/*
+## NOTES
+
+If you use this to upload a lot of images, you might get a 500 error. In my experience, the
+danger zone is around 60-70 files, but this likely varies depending on server setup, available
+memory, how big the files are, etc. Just refresh the page to continue uploading.
+
+Keep in mind, though, that my use case for this is to upload individual WP posts as they're
+created. Bulk-uploading large files is not really what I designed this for. If you have any
+thoughts on how to improve this, I would love to know about them. I might, at some point, set up
+an ajax-based approach where another script serves this one each image at a time, rather than
+having one script take on 200 images. But maybe there's a better way? Anyway, you've been warned. 
+
+
+## CREDIT WHERE CREDIT IS DUE
+
+Slightly modified version of tlongren's jolly script here:
+https://gist.github.com/tlongren/ebecf53d18ef712006d2aa53fce8f2a4
+
+and GhostToast's reply here (which is from 2013, but still works for my purposes)
+https://wordpress.stackexchange.com/questions/100838/how-to-set-featured-image-to-custom-post-from-outside-programmatically
 
 
 
@@ -59,7 +71,7 @@ TODO
 // to generate data in JSON format in Shortcuts via dictionaries.
 
 
-/*
+
   INFO TEMPLATES
   ==============
 
@@ -95,6 +107,19 @@ TODO
 
 */
 
+/*
+@todo
+- Add HTML5 Boilerplate template
+- Add styling
+- Add the "uploading" screen, and then have it replaced when everything's been uploaded
+- clean up code
+- fix the thing where it throws a 500 if it has to process too many images
+- the image file types it's looking for should be a config variable
+
+- write brief explanatory docs
+- share iOS shortcut
+- Set up smallhacks page for this on csi.dev
+*/
 
 
 /*
@@ -112,23 +137,22 @@ TODO
 // files are associative arrays
 
 $wp_root = $_SERVER['DOCUMENT_ROOT'];
-<<<<<<< HEAD:5552e87f.php
-$public_directory_url = 'http://notes.local/wp-content/plugins/postalservice/files/';
+$public_directory_url = 'https://notes.art/wp-content/plugins/postalservice/files/';
 $files_dir = $wp_root.'/wp-content/plugins/postalservice/files';
-=======
-$public_directory_url = 'https://csilverman.photos/wp-content/postalservice/files/';
-$files_dir = $wp_root.'/wp-content/postalservice/files';
->>>>>>> 9bb2c73cfabd065bf25ae47f4561776fc262bc34:index.php
 $posted_files_dir = $files_dir.'/_posted_items';
 $info_file_type = 'json';
 
+
+// If you're testing this on a public server, you might want to
+// set 'post_status' to 'draft' first.
 
 $settings = [
   'wp_root' => $wp_root,
   'public_directory_url' => $public_directory_url,
   'files_dir' => $files_dir,
   'info_file_type' => $info_file_type,
-  'posted_files_dir' => $posted_files_dir
+  'posted_files_dir' => $posted_files_dir,
+  'post_status' => 'publish',
 ];
 
 // Load WordPress
@@ -149,7 +173,7 @@ require_once(ABSPATH . '/wp-admin/includes/image.php');
  * @return [type]            [description]
  */
 function insert_image_post( $image_url, $post_data ) {
-
+  global $settings;
 
   // Set the timezone so times are calculated correctly
   date_default_timezone_set('Europe/London');
@@ -167,7 +191,6 @@ function insert_image_post( $image_url, $post_data ) {
   // since there might be multiple ones, I'm storing any
   // meta fields in their own array
 
-
   // Create post
   $post_id = wp_insert_post(array(
       'post_title'    => $post_data['title'] ?? 'title',
@@ -175,11 +198,12 @@ function insert_image_post( $image_url, $post_data ) {
       'post_date'     => $post_data['post_date'], // ?? $post_date,
       'post_author'   => $post_data['user_id'] ?? 1,
       'post_type'     => $post_data['post_type'] ?? 'post',
-      'post_status'   => $post_data['post_status'] ?? 'publish',
+      'post_status'   => $post_data['post_status'] ?? $settings['post_status'],
       'post_category' => $post_data['post_cats'] ?? null,
       'tags_input'    => $post_data['post_tags'] // ?? null
   ));
 
+  //  If this was successful, we now have an ID for the new post.
   if ( $post_id ) {
     
     
@@ -200,44 +224,81 @@ function insert_image_post( $image_url, $post_data ) {
   }
 
   // magic sideload image returns an HTML image, not an ID
-  $media = media_sideload_image($image_url, $post_id);
+  // by default, what it returns is a populated img tag. I want just the URL, so I need to specify
+  // a return_type of 'src' 
+  $media = media_sideload_image($image_url, $post_id, null, 'src');
+  echo '$media = ' . $media . '<br><hr>';
+  
+  
+  
+  // So here's an issue. $media returns the URL of the newly uploaded image. That's a full
+  // URL that includes the domain name of your site.
+  //
+  // But if you're using something like Jetpack, the images will be uploaded to the
+  // Jetpack CDN and the URL will change to the image's URL on the CDN (i0.wp.com or something)
+  // This poses a problem when, later on, we're comparing the URL of the image we just uploaded to
+  // the attachment's URL (which we'll obtain via wp_get_attachment_image_src()). The CDN URL might also
+  // have additional parameters like ?fit=900%2C1526&ssl=1
+  //
+  // So to make sure the comparison doesn't fail, we need to extract the raw filename from both URLs,
+  // since that's the one thing that shouldn't change.
+  //
+  // 
 
-  // therefore we must find it so we can set it as featured ID
-  if(!empty($media) && !is_wp_error($media)){
+  $sideloaded_imagename = pathinfo($media);
+  $sideloaded_imagename = $sideloaded_imagename['filename'];
+
+  // So if $media isn't empty or an error - that is, the image was successfully sideloaded - we now
+  // have to get more details about it so we can specify it as a featured image for the post
+  // we just created. So let's find that image.
+  
+  if(!empty($media) && !is_wp_error($media)) {
     $args = array(
       'post_type' => 'attachment',
       'posts_per_page' => -1,
       'post_status' => 'any',
       'post_parent' => $post_id
     );
-
-    // reference new image to set as featured
+    
+    // find all attachments that have a post parent ID of the one we just created
     $attachments = get_posts($args);
 
+        
     if(isset($attachments) && is_array($attachments)) {
+
       foreach($attachments as $attachment) {
         // grab source of full size images (so no 300x150 nonsense in path)
         $image = wp_get_attachment_image_src($attachment->ID, 'full');
+
+        // set alt text
+        $img_alt_text = $post_data['img_alt'] ?? '';
+        update_post_meta( $attachment->ID, '_wp_attachment_image_alt', $img_alt_text );
+        
         // determine if in the $media image we created, the string of the URL exists
-        if(strpos($media, $image[0]) !== false) {
+
+        $attachment_filename = pathinfo($image[0]);
+        $attachment_filename = $attachment_filename['filename'];
+
+        if($sideloaded_imagename == $attachment_filename) {
           // if so, we found our image. set it as thumbnail
-          set_post_thumbnail($post_id, $attachment->ID);
+          $was_set = set_post_thumbnail($post_id, $attachment->ID);
           // only want one image
+          echo '$post_id = ' . $post_id . ', $was_set = ' . $was_set;
           break;
         }
       }
     }
+    echo "no error";
   }
+  else echo "error " . wp_error($media);
 }
 
 function scan_folder( $folder ) {
 
-//  $folder = $folder ?? $_SERVER['DOCUMENT_ROOT'].'/wp-content/plugins/insert-posts/files';
-
   global $settings;
 
   // get all image files
-  $files = glob("$folder/*.{jpg,jpeg,gif,png,bmp}", GLOB_BRACE);
+  $files = glob("$folder/*.{jpg,JPG,jpeg,JPEG,gif,GIF,png,PNG}", GLOB_BRACE);
 
   foreach ( $files as &$file ) {
 
@@ -274,11 +335,8 @@ echo 'info file path ' . $info_file_path;
     if( $settings['info_file_type'] != 'array' )
       $info_file_data = json_decode( $info_file_data, true );
 
-    // here is now the image file data
-
     // the public image path
     $image_url = $settings['public_directory_url'] . $path_parts['basename'];
-//     echo $image_url;
 
     insert_image_post( $image_url, $info_file_data );
 
