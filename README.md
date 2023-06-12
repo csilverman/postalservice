@@ -1,3 +1,5 @@
+
+
 # PostalService
 
 PostalService is a PHP script that inserts images and posts into WordPress.
@@ -29,6 +31,7 @@ PostalService then does the following:
 
 ### Where everything goes
 
+```
 ..📁plugins
    └ 📁PostalService
       └ 📁files
@@ -37,6 +40,7 @@ PostalService then does the following:
          └ 🖼another-post.png
          └ 📄another-post.json
          └ 📁_posted_items
+```
 
 1. In your WordPress plugins folder, create a folder for PostalService. I'll refer to it here as the "PostalService folder", but it doesn't need to be called "postalservice" and, for security reasons, probably shouldn't be. If you change it, however, you need to specify what the name is in the script (see Configuration). (PostalService can technically be anywhere on your server; the one place you should **not** put it is in with the core WordPress installation files.)
 2. **Rename the script**, again for security reasons I suggest something diabolically random, like an MD5 hash.
@@ -100,4 +104,6 @@ If you're using this in conjunction with iOS Shortcuts
 - Make sure the path it's uploading to is valid/correct. On Dreamiest, that'll look something like /home/dh_XXXXXX/your.domain.com/wp-content/plugins/postalservice/files/. Does the folder it's being uploaded to actually exist?
 - **The SFTP user account needs shell access.** On DreamHost, SSH is off by default for new users. You'll need to turn this on in the DreamHost admin panel before you can upload files via Secure Terminal.
 - I've noticed that Secure Terminal can't handle very large files. I'm not sure what the exact number is, but anything over a couple MB seems to be problematic. You might need to resize images you're uploading to make them smaller.
+
+
 
