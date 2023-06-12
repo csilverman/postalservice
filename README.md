@@ -1,5 +1,3 @@
-
-
 # PostalService
 
 PostalService is a PHP script that inserts images and posts into WordPress.
@@ -43,8 +41,9 @@ PostalService then does the following:
 ```
 
 1. In your WordPress plugins folder, create a folder for PostalService. I'll refer to it here as the "PostalService folder", but it doesn't need to be called "postalservice" and, for security reasons, probably shouldn't be. If you change it, however, you need to specify what the name is in the script (see Configuration). (PostalService can technically be anywhere on your server; the one place you should **not** put it is in with the core WordPress installation files.)
-2. **Rename the script**, again for security reasons I suggest something diabolically random, like an MD5 hash.
-3. In the PostalService folder, create a folder named "files". This is where
+2. **Rename the script**, again for security reasons. I suggest something diabolically random, like an MD5 hash.
+3. In the PostalService folder, create a folder named "files". This is where all your files go before they're posted.
+4. In the PostalService/files folder, create a subfolder named "_posted_items". This is where your files go after they're posted.
 
 
 
@@ -58,20 +57,56 @@ In the "postal.php" file, scroll down to the SETUP section.
 - `$ps__image_types`: The file extensions that PostalService looks for.
 - `$ps__default_post_status`: The status that any newly created WordPress posts will have. This can be [any valid WordPress post status](https://wordpress.org/documentation/article/post-status/). It's set to "draft" by default; set it to "publish" when you're ready.
 
-/// PERMISSIONS: what do these need to be?
+You can have PostalService generate any WordPress content type; it's not limited to posts. However, you'll need to include a `post_type` line in each .json file:
+
+```
+  "post_type": "photo",
+```
+
+Currently, if you want PostalService to default to a particular content type, you'll need to modify the `wp_insert_post()` call in `insert_image_post()`. In the future, I'll [make that easier](https://github.com/csilverman/postalservice/issues/3).
 
 
 ### JSON file structure
 
+The .json files that contain post info will look something like this:
+
+```
+{
+  "title": "Hello World",
+  "content": "<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aliquam interdum mollis laoreet. Curabitur ullamcorper pulvinar metus eu congue. Quisque tempus nisi id dapibus tincidunt. Etiam ut arcu a orci iaculis placerat vel eu nisi. Quisque tincidunt risus at est tristique, in volutpat diam vehicula. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia curae; Maecenas ullamcorper, felis in egestas eleifend, nisl quam viverra leo, id blandit eros lectus sed mauris. Duis facilisis tempor faucibus. Pellentesque ac dapibus velit. Sed id metus ac sapien aliquam pretium eget non est. Vestibulum auctor pharetra interdum. Donec aliquet lectus vel metus consequat congue. Nunc ornare sagittis egestas.</p><p>Ut eleifend vel dui vitae sagittis. Etiam eget est viverra, tincidunt nibh vel, dapibus dolor. Maecenas dolor augue, tristique id hendrerit mollis, dignissim in diam. Etiam eu metus mauris. Duis nisi ligula, accumsan quis convallis sit amet, sollicitudin non erat. Nam dignissim tempus quam non vulputate. Donec interdum eget libero a pellentesque. Mauris placerat non libero eget maximus.</p>",
+  "post_meta_fields": {
+    "meta 1": "hey",
+    "meta 2": "it worked",
+    "css": "yes"
+  },
+  "post_tags": [
+    "tag1",
+    "tag2",
+    "tag3"
+  ]
+}
+```
+
+You don't have to specify every possible post attribute in a .json file. In the above example, note that no post date or author was specified. PostalService has default values for these (the current date and the admin user, respectively).
+
+Note that PostalService doesn't recognize all of [the parameters allowable by `$postarr`](https://developer.wordpress.org/reference/functions/wp_insert_post/#parameters), just the following:
+
+- `post_title` - *defaults to "title"*
+- `post_content`
+- `post_date` - *defaults to current date*
+- `post_author` - *defaults to user ID `1`*
+- `post_type` - *defaults to `post`*
+- `post_status` - *defaults to whatever value you've set in the `post_status` configuration*
+- `post_category`
+- `post_tags` - *note that the official WordPress array key name is `tags_input`*
+
+In the future, I'll add support for all post parameters.
+
+You can also, if you need to, specify post content in an PHP array rather than JSON format. If you're going to do that, make sure you set `$ps__info_file_type` to "array". The file extension for content files still has to be .json, however. (I agree this is inelegant; at this point, I'm looking at arrays as an edge case.)
 
 
 
 ## Important Notes
-
-
-
-via [Secure Terminal](https://apps.apple.com/us/app/secure-terminal/id1463284695)
-
 
 
 ### Images are required for posts
@@ -94,16 +129,19 @@ Keep in mind, though, that my use case for this was to set up WordPress posts fo
 
 When I built PostalService, my intention was to use it as one half of a workflow that let me post to my WordPress blog from my iPhone. I'm aware that there is an official WordPress iOS app, and that this app includes a Shortcut action. I was not impressed by either of those, in particular  the Shortcut action, which—in the course of posting a single post—sent so many requests to my blog that my web host mistook it for an attack and blocked it.
 
- with iOS Shortcuts in mind
+So I built a Shortcut that does the following:
 
-Some notes on the Secure Terminal action
+- prompts you to select an image from your photo library
+- generates a JSON file
+- uploads both files to the PostalService directory
+- calls the PostalService script with an Open URL action
 
-If you're using this in conjunction with iOS Shortcuts
+iOS Shortcuts does not currently include an FTP action, so you'll need to use a third-party app. I recommend [Secure Terminal](https://apps.apple.com/us/app/secure-terminal/id1463284695). It's a one-time purchase, and includes a Save File action that uploads a file to a server.
 
-- Make sure the File Path Destination includes the filename. If it's just the directory path with no filename, it'll fail.
-- Make sure the path it's uploading to is valid/correct. On Dreamiest, that'll look something like /home/dh_XXXXXX/your.domain.com/wp-content/plugins/postalservice/files/. Does the folder it's being uploaded to actually exist?
-- **The SFTP user account needs shell access.** On DreamHost, SSH is off by default for new users. You'll need to turn this on in the DreamHost admin panel before you can upload files via Secure Terminal.
+A few things you should know:
+
+- Make sure the path it's uploading to is valid/correct. On DreamHost, that'll look something like /home/dh_XXXXXX/your.domain.com/wp-content/plugins/postalservice/files/. File Path Destination has to include the filename; if you just pass it the directory path with no filename, it'll fail.
+- The SFTP user account needs shell access. On DreamHost, SSH is off by default for new users. You'll need to turn this on in the DreamHost admin panel before you can upload files via Secure Terminal.
 - I've noticed that Secure Terminal can't handle very large files. I'm not sure what the exact number is, but anything over a couple MB seems to be problematic. You might need to resize images you're uploading to make them smaller.
-
 
 
