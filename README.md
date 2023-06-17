@@ -41,7 +41,7 @@ PostalService then does the following:
 ```
 
 1. In your WordPress plugins folder, create a folder for PostalService. I'll refer to it here as the "PostalService folder", but it doesn't need to be called "postalservice" and, for security reasons, probably shouldn't be. If you change it, however, you need to specify what the name is in the script (see Configuration). (PostalService can technically be anywhere on your server; the one place you should **not** put it is in with the core WordPress installation files.)
-2. **Rename the script**, again for security reasons. I suggest something diabolically random, like an MD5 hash.
+2. **Rename the script file**, again for security reasons. I suggest something diabolically random, like an MD5 hash. "4e4d6c332b6fe62a63afe56171fd3725.php" is a little harder to guess.
 3. In the PostalService folder, create a folder named "files". This is where all your files go before they're posted.
 4. In the PostalService/files folder, create a subfolder named "_posted_items". This is where your files go after they're posted.
 
