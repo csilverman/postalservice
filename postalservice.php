@@ -51,15 +51,16 @@ PostalService is a small PHP script that does the following:
 tlongren's excellent script here was very helpful:
 https://gist.github.com/tlongren/ebecf53d18ef712006d2aa53fce8f2a4
 
-// This script converts JSON to associative arrays, but assumes that
-// the .json files are in JSON format. This is a personal decision; I'm
-// building this script to post to WP from iOS Shortcuts, and it's easier
-// to generate data in JSON format in Shortcuts via dictionaries.
-
-
 
   INFO TEMPLATES
   ==============
+
+  // This script converts JSON to associative arrays, but assumes that
+  // the .json files are in JSON format. This is a personal decision; I'm
+  // building this script to post to WP from iOS Shortcuts, and it's easier
+  // to generate data in JSON format in Shortcuts via dictionaries.
+  
+  
 
   JSON
   ----
@@ -95,22 +96,7 @@ https://gist.github.com/tlongren/ebecf53d18ef712006d2aa53fce8f2a4
     'tag3'
   ]  
 ]
-
-
-
 */
-
-/*
-@todo
-- Add HTML5 Boilerplate template
-- Make this prettier:
-  - styling for the statuses displayed by insert_image_post()
-  - overall niceness for the page
-- Add the "uploading" screen, and then have it replaced when everything's been uploaded
-- fix the thing where it throws a 500 if it has to process too many images
-- better error management. insert_image_post() could fail at two points: either creating a post or attaching an image. If either of these fails for some reason, it should (1) return false, and (2) give some indication as to the nature of the problem.
-*/
-
 
 //  SETUP
 //  ================
