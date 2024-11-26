@@ -99,7 +99,7 @@ Note that PostalService doesn't recognize all of [the parameters allowable by `$
 - `post_author` - *defaults to user ID `1`*
 - `post_type` - *defaults to `post`*
 - `post_status` - *defaults to whatever value you've set in the `post_status` configuration*
-- `post_category`
+- `post_category` - *Needs to be an array, even if there's just one ID; defaults to `[1]`*
 - `post_tags` - *note that the official WordPress array key name is `tags_input`*
 
 In the future, I'll add support for all post parameters.
