@@ -2,6 +2,8 @@
 
 PostalService is a PHP script that inserts images and posts into WordPress.
 
+Note that this is **not** a plugin. You don't call the script from within WordPress.
+
 ## Overview
 
 What you do: 
